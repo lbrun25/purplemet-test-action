@@ -30,7 +30,7 @@ jobs:
           target-url: 'https://www.wazamix.fr'
           fail-severity: 'high'
           fail-rating: 'E'
-          sarif-uplaod: 'true'
+          sarif-upload: 'true'
           timeout: 900000
           fail-cvss: 5
           fail-on-kev: true
