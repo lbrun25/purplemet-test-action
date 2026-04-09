@@ -27,6 +27,8 @@ jobs:
         with:
           api-token: ${{ secrets.PURPLEMET_API_TOKEN }}
           base-url: 'https://api.dev.purplemet.com'
+          basic-user: ${{ secrets.PPM_CLOUD_UI_BASIC_USER }}
+          basic-pass: ${{ secrets.PPM_CLOUD_UI_BASIC_PASS }}
           target-url: 'https://www.wazamix.fr'
           fail-severity: 'high'
           fail-rating: 'E'
