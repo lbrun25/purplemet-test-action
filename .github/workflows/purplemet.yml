@@ -24,17 +24,17 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: purplemet/purplemet-action@v1
-      with:
-        api-token: $ {{ secrets.PURPLEMET_API_TOKEN }}
-        base-url: 'https://api.dev.purplemet.com'
-        target-url: 'https://www.wazamix.fr'
-        fail-severity: 'high'
-        fail-rating: 'E'
-        sarif-uplaod: 'true'
-        timeout: 900000
-        fail-cvss: 5
-        fail-on-kev: true
-        fail-on-eol: true
-        fail-on-ssl: true
-        fail-on-cert: true
-        fail-on-headers: true
+        with:
+          api-token: $ {{ secrets.PURPLEMET_API_TOKEN }}
+          base-url: 'https://api.dev.purplemet.com'
+          target-url: 'https://www.wazamix.fr'
+          fail-severity: 'high'
+          fail-rating: 'E'
+          sarif-uplaod: 'true'
+          timeout: 900000
+          fail-cvss: 5
+          fail-on-kev: true
+          fail-on-eol: true
+          fail-on-ssl: true
+          fail-on-cert: true
+          fail-on-headers: true
