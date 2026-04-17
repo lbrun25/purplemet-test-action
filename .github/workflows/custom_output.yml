@@ -1,0 +1,92 @@
+name: Purplemet Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # required for SARIF upload
+  pull-requests: write     # required for PR comment
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run Purplemet Scan
+        uses: purplemet/purplemet-action@v1
+        id: purplemet
+        continue-on-error: true   # let next steps run even if gate fails
+        with:
+          api-token: ${{ secrets.PURPLEMET_API_TOKEN }}
+          base-url: https://api.dev.purplemet.com
+          basic-user: ${{ secrets.PPM_CLOUD_UI_BASIC_USER }}
+          basic-pass: ${{ secrets.PPM_CLOUD_UI_BASIC_PASS }}
+          target-url: https://www.epitech.eu/
+          fail-severity: high
+          timeout: 3000000
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const rating = '${{ steps.purplemet.outputs.rating }}' || 'N/A';
+            const issues = '${{ steps.purplemet.outputs.issues }}' || '0';
+            const exit   = '${{ steps.purplemet.outputs.exit-code }}';
+
+            const status = exit === '0' ? '✅ Passed' : '❌ Failed';
+            const emoji  = {
+              A: '🟢', B: '🟢',
+              C: '🟡',
+              D: '🟠',
+              E: '🔴', F: '🔴'
+            }[rating] || '⚪';
+
+            const body = [
+              '## 🛡️ Purplemet Web ASM',
+              '',
+              '| Metric | Value |',
+              '|---|---|',
+              `| Rating | ${emoji} **${rating}** |`,
+              `| Issues found | **${issues}** |`,
+              `| Gate status | ${status} |`,
+              '',
+              '📋 Full report → **Security → Code scanning** tab.',
+              '🔗 Job summary → Actions tab.',
+            ].join('\n');
+
+            // Update existing comment if any (avoid spam on re-runs)
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.startsWith('## 🛡️ Purplemet')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail job if gate failed
+        if: steps.purplemet.outputs.exit-code != '0'
+        run: |
+          echo "::error::Purplemet gate failed (exit ${{ steps.purplemet.outputs.exit-code }})"
+          exit 1
