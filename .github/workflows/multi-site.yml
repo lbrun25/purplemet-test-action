@@ -1,0 +1,26 @@
+name: Multi-Site Security Analysis
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  security:
+    name: Analyze ${{ matrix.site.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        site:
+          - { name: 'Production', url: 'https://www.purplemet.com/' }
+          # - { name: 'Staging', url: 'https://staging.example.com' }
+          # - { name: 'API', url: 'https://api.example.com' }
+    steps:
+      - uses: purplemet/purplemet-action@v1
+        with:
+          api-token: ${{ secrets.PURPLEMET_API_TOKEN }}
+          base-url: 'https://api.dev.purplemet.com'
+          basic-user: ${{ secrets.PPM_CLOUD_UI_BASIC_USER }}
+          basic-pass: ${{ secrets.PPM_CLOUD_UI_BASIC_PASS }}
+          target-url: ${{ matrix.site.url }}
+          fail-severity: 'high'
+          timeout: '6000000'
